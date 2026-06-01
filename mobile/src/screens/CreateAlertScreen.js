@@ -164,6 +164,10 @@ export default function CreateAlertScreen({ route, navigation }) {
             </>
           )}
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.cancelBtn} onPress={() => navigation.goBack()} disabled={loading}>
+          <Text style={styles.cancelBtnText}>Cancel</Text>
+        </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -202,4 +206,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.up, borderRadius: 12, padding: 15, marginTop: 28, gap: 8,
   },
   btnText: { color: COLORS.bg, fontWeight: '700', fontSize: 16 },
+  cancelBtn: {
+    alignItems: 'center', padding: 15, marginTop: 10,
+  },
+  cancelBtnText: { color: COLORS.muted, fontSize: 16, fontWeight: '600' },
 });
