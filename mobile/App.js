@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { LogBox } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
-import AppNavigator from './src/navigation/AppNavigator';
+import { AppNavigator } from './src/navigation/AppNavigator';
 import {
   registerForPushNotifications,
   addNotificationListener,

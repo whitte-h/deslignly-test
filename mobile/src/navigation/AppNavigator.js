@@ -6,12 +6,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, View } from 'react-native';
 
 import { useAuth } from '../context/AuthContext';
-import LoginScreen from '../screens/LoginScreen';
-import RegisterScreen from '../screens/RegisterScreen';
-import StocksScreen from '../screens/StocksScreen';
-import StockDetailScreen from '../screens/StockDetailScreen';
-import AlertsScreen from '../screens/AlertsScreen';
-import CreateAlertScreen from '../screens/CreateAlertScreen';
+import { LoginScreen } from '../screens/LoginScreen';
+import { RegisterScreen } from '../screens/RegisterScreen';
+import { StocksScreen } from '../screens/StocksScreen';
+import { StockDetailScreen } from '../screens/StockDetailScreen';
+import { AlertsScreen } from '../screens/AlertsScreen';
+import { CreateAlertScreen } from '../screens/CreateAlertScreen';
+import { HeaderMenu } from '../components/HeaderMenu';
 import { COLORS } from '../utils/theme';
 
 const Stack = createNativeStackNavigator();
@@ -34,9 +35,15 @@ const screenOptions = ({ route }) => ({
   headerTitleStyle: { fontWeight: '700' },
 });
 
+// Hoisted so they aren't treated as components defined during render
+const renderHeaderMenu = () => <HeaderMenu />;
+const renderNoHeaderRight = () => null;
+
 const stackHeaderOptions = {
   headerStyle: { backgroundColor: COLORS.surface },
   headerTintColor: COLORS.text,
+  // App-wide overflow menu (logout). Screens with their own header action override this.
+  headerRight: renderHeaderMenu,
 };
 
 const StocksStack = () => (
@@ -56,7 +63,7 @@ const AlertsStack = () => (
     <Stack.Screen
       name="CreateAlert"
       component={CreateAlertScreen}
-      options={{ title: 'New Alert', presentation: 'modal' }}
+      options={{ title: 'New Alert', presentation: 'modal', headerRight: renderNoHeaderRight }}
     />
   </Stack.Navigator>
 );

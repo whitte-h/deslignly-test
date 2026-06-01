@@ -7,7 +7,6 @@ import { LineChart } from 'react-native-chart-kit';
 import { Ionicons } from '@expo/vector-icons';
 import { stocksAPI } from '../api';
 import { connectSocket, addPriceListener, removePriceListener } from '../services/socket';
-import { useAuth } from '../context/AuthContext';
 import { COLORS, cardStyle } from '../utils/theme';
 import { formatPrice, formatPercent, formatChange, changeColor } from '../utils/format';
 import { makeChartConfig } from '../utils/chartConfig';
@@ -16,7 +15,6 @@ const { width } = Dimensions.get('window');
 const SOCKET_KEY = 'stocks_screen';
 
 export const StocksScreen = ({ navigation }) => {
-  const { logout } = useAuth();
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -114,9 +112,6 @@ export const StocksScreen = ({ navigation }) => {
         <View>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Markets</Text>
-            <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
-              <Ionicons name="log-out-outline" size={22} color={COLORS.muted} />
-            </TouchableOpacity>
           </View>
 
           {showChart && (
@@ -161,7 +156,6 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   headerTitle: { color: COLORS.text, fontSize: 22, fontWeight: '800' },
-  logoutBtn: { padding: 4 },
   chartCard: { ...cardStyle, marginHorizontal: 16, marginBottom: 12, padding: 12 },
   chartTitle: { color: COLORS.muted, fontSize: 13, marginBottom: 8, fontWeight: '600' },
   chart: { borderRadius: 8 },
