@@ -1,4 +1,4 @@
-const admin = require('firebase-admin');
+import admin from 'firebase-admin';
 
 let initialized = false;
 
@@ -20,7 +20,7 @@ const init = () => {
   console.log('[Firebase] Admin SDK initialized');
 };
 
-const sendNotification = async (fcmToken, title, body, data = {}) => {
+export const sendNotification = async (fcmToken, title, body, data = {}) => {
   init();
   if (!initialized) return null;
 
@@ -41,5 +41,3 @@ const sendNotification = async (fcmToken, title, body, data = {}) => {
     return null;
   }
 };
-
-module.exports = { sendNotification };

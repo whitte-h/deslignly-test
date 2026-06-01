@@ -55,8 +55,6 @@ export const registerForPushNotifications = async () => {
   return token;
 };
 
-export const addNotificationListener = (handler) =>
-  Notifications.addNotificationReceivedListener(handler);
+export const addNotificationListener = (handler) => Notifications.addNotificationReceivedListener(handler);
 
-export const addResponseListener = (handler) =>
-  Notifications.addNotificationResponseReceivedListener(handler);
+export const addResponseListener = (handler) => Notifications.addNotificationResponseReceivedListener(handler);

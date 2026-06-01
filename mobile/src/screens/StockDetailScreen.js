@@ -21,7 +21,51 @@ const RANGES = [
   { label: '1Y', days: 365, resolution: 'M' },
 ];
 
-export default function StockDetailScreen({ route, navigation }) {
+const HeaderAlertButton = ({ onPress }) => (
+  <TouchableOpacity style={{ marginRight: 16 }} onPress={onPress}>
+    <Ionicons name="notifications-outline" size={24} color={COLORS.up} />
+  </TouchableOpacity>
+);
+
+const renderChartContent = ({ loading, hasData, dataValues, labels, color, chartUnavailable }) => {
+  if (loading) {
+    return (
+      <View style={styles.chartLoading}>
+        <ActivityIndicator color={COLORS.up} />
+      </View>
+    );
+  }
+  if (chartUnavailable) {
+    return (
+      <View style={styles.noData}>
+        <Ionicons name="lock-closed-outline" size={28} color={COLORS.muted} />
+        <Text style={styles.noDataText}>Chart data is not available</Text>
+        <Text style={styles.noDataSub}>Upgrade your Finnhub plan to unlock historical candles</Text>
+      </View>
+    );
+  }
+  if (hasData && dataValues.length > 1) {
+    return (
+      <LineChart
+        data={{ labels, datasets: [{ data: dataValues }] }}
+        width={width - 32}
+        height={220}
+        yAxisLabel="$"
+        chartConfig={makeChartConfig(color)}
+        bezier
+        withShadow={false}
+        style={styles.chart}
+      />
+    );
+  }
+  return (
+    <View style={styles.noData}>
+      <Text style={styles.noDataText}>No chart data available for this range</Text>
+    </View>
+  );
+};
+
+const StockDetailScreen = ({ route, navigation }) => {
   const { symbol } = route.params;
   const [quote, setQuote] = useState(null);
   const [candles, setCandles] = useState(null);
@@ -31,16 +75,9 @@ export default function StockDetailScreen({ route, navigation }) {
   const livePrice = useRef(null);
 
   useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          style={{ marginRight: 16 }}
-          onPress={() => navigation.navigate('AlertsList', { screen: 'CreateAlert', params: { symbol } })}
-        >
-          <Ionicons name="notifications-outline" size={24} color={COLORS.up} />
-        </TouchableOpacity>
-      ),
-    });
+    const onPress = () => navigation.navigate('AlertsList', { screen: 'CreateAlert', params: { symbol } });
+    // eslint-disable-next-line react/no-unstable-nested-components
+    navigation.setOptions({ headerRight: () => <HeaderAlertButton onPress={onPress} /> });
   }, [navigation, symbol]);
 
   useEffect(() => {
@@ -71,7 +108,7 @@ export default function StockDetailScreen({ route, navigation }) {
     addPriceListener(SOCKET_KEY, ({ symbol: s, price }) => {
       if (s === symbol) {
         livePrice.current = price;
-        setQuote((q) => q ? { ...q, c: price } : q);
+        setQuote((q) => (q ? { ...q, c: price } : q));
       }
     });
     return () => removePriceListener(SOCKET_KEY);
@@ -80,8 +117,8 @@ export default function StockDetailScreen({ route, navigation }) {
   const chartData = candles?.candles;
   const closePrices = chartData?.c ?? [];
   const timestamps = chartData?.t ?? [];
-
   const hasData = closePrices.length > 0;
+
   const priceChange = quote ? quote.c - quote.pc : 0;
   const pctChange = quote?.pc ? (priceChange / quote.pc) * 100 : 0;
   const color = changeColor(pctChange);
@@ -98,7 +135,6 @@ export default function StockDetailScreen({ route, navigation }) {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Price Header */}
       <View style={styles.priceSection}>
         <Text style={styles.symbolLabel}>{symbol}</Text>
         {quote && (
@@ -107,14 +143,18 @@ export default function StockDetailScreen({ route, navigation }) {
             <View style={styles.changeRow}>
               <Ionicons name={isUp ? 'trending-up' : 'trending-down'} size={18} color={color} />
               <Text style={[styles.changeText, { color }]}>
-                {' '}{formatChange(priceChange)} ({formatPercent(pctChange)}) Today
+                {' '}
+                {formatChange(priceChange)}
+                {' '}
+                (
+                {formatPercent(pctChange)}
+                ) Today
               </Text>
             </View>
           </>
         )}
       </View>
 
-      {/* Range Picker */}
       <View style={styles.rangePicker}>
         {RANGES.map((r) => (
           <TouchableOpacity
@@ -129,37 +169,12 @@ export default function StockDetailScreen({ route, navigation }) {
         ))}
       </View>
 
-      {/* Chart */}
       <View style={styles.chartCard}>
-        {loading ? (
-          <View style={styles.chartLoading}>
-            <ActivityIndicator color={COLORS.up} />
-          </View>
-        ) : hasData && dataValues.length > 1 ? (
-          <LineChart
-            data={{ labels, datasets: [{ data: dataValues }] }}
-            width={width - 32}
-            height={220}
-            yAxisLabel="$"
-            chartConfig={makeChartConfig(color)}
-            bezier
-            withShadow={false}
-            style={styles.chart}
-          />
-        ) : chartUnavailable ? (
-          <View style={styles.noData}>
-            <Ionicons name="lock-closed-outline" size={28} color={COLORS.muted} />
-            <Text style={styles.noDataText}>Chart data is not available</Text>
-            <Text style={styles.noDataSub}>Upgrade your Finnhub plan to unlock historical candles</Text>
-          </View>
-        ) : (
-          <View style={styles.noData}>
-            <Text style={styles.noDataText}>No chart data available for this range</Text>
-          </View>
-        )}
+        {renderChartContent({
+          loading, hasData, dataValues, labels, color, chartUnavailable,
+        })}
       </View>
 
-      {/* Quote Stats */}
       {quote && (
         <View style={styles.statsCard}>
           <Text style={styles.statsTitle}>Market Data</Text>
@@ -179,7 +194,6 @@ export default function StockDetailScreen({ route, navigation }) {
         </View>
       )}
 
-      {/* Create Alert Button */}
       <TouchableOpacity
         style={styles.alertBtn}
         onPress={() => navigation.navigate('Alerts', { screen: 'CreateAlert', params: { symbol } })}
@@ -189,7 +203,9 @@ export default function StockDetailScreen({ route, navigation }) {
       </TouchableOpacity>
     </ScrollView>
   );
-}
+};
+
+export default StockDetailScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
@@ -198,7 +214,12 @@ const styles = StyleSheet.create({
   price: { color: COLORS.text, fontSize: 42, fontWeight: '800', marginVertical: 4 },
   changeRow: { flexDirection: 'row', alignItems: 'center' },
   changeText: { fontSize: 15, fontWeight: '600' },
-  rangePicker: { flexDirection: 'row', justifyContent: 'space-evenly', marginHorizontal: 16, marginBottom: 12 },
+  rangePicker: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    marginHorizontal: 16,
+    marginBottom: 12,
+  },
   rangeBtn: { ...cardStyle, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 8 },
   rangeBtnActive: { backgroundColor: COLORS.up, borderColor: COLORS.up },
   rangeBtnText: { color: COLORS.muted, fontWeight: '600' },
@@ -208,17 +229,32 @@ const styles = StyleSheet.create({
   chart: { borderRadius: 8 },
   noData: { height: 220, justifyContent: 'center', alignItems: 'center' },
   noDataText: { color: COLORS.muted, marginTop: 10, fontWeight: '600' },
-  noDataSub: { color: COLORS.muted, fontSize: 12, marginTop: 6, textAlign: 'center', paddingHorizontal: 16, opacity: 0.7 },
+  noDataSub: {
+    color: COLORS.muted, fontSize: 12, marginTop: 6, textAlign: 'center', paddingHorizontal: 16, opacity: 0.7,
+  },
   statsCard: { ...cardStyle, marginHorizontal: 16, padding: 16, marginBottom: 16 },
-  statsTitle: { color: COLORS.muted, fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 },
+  statsTitle: {
+    color: COLORS.muted,
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   statItem: { width: '50%', marginBottom: 12 },
   statLabel: { color: COLORS.muted, fontSize: 12, marginBottom: 2 },
   statValue: { color: COLORS.text, fontSize: 16, fontWeight: '600' },
   alertBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: COLORS.up, marginHorizontal: 16, marginBottom: 32,
-    borderRadius: 12, padding: 15, gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.up,
+    marginHorizontal: 16,
+    marginBottom: 32,
+    borderRadius: 12,
+    padding: 15,
+    gap: 8,
   },
   alertBtnText: { color: COLORS.bg, fontWeight: '700', fontSize: 16 },
 });

@@ -34,7 +34,7 @@ api.interceptors.response.use(
   (err) => {
     const msg = err.response?.data?.error || err.message;
     return Promise.reject(new Error(msg));
-  }
+  },
 );
 
 // Auth
@@ -47,12 +47,10 @@ export const authAPI = {
 
 // Stocks
 export const stocksAPI = {
-  list: (symbols) =>
-    api.get('/stocks', { params: symbols ? { symbols: symbols.join(',') } : {} }),
+  list: (symbols) => api.get('/stocks', { params: symbols ? { symbols: symbols.join(',') } : {} }),
   search: (q) => api.get('/stocks/search', { params: { q } }),
   quote: (symbol) => api.get(`/stocks/${symbol}/quote`),
-  candles: (symbol, resolution = 'D', days = 30) =>
-    api.get(`/stocks/${symbol}/candles`, { params: { resolution, days } }),
+  candles: (symbol, resolution = 'D', days = 30) => api.get(`/stocks/${symbol}/candles`, { params: { resolution, days } }),
 };
 
 // Alerts

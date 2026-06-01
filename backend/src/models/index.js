@@ -1,4 +1,6 @@
-const { Sequelize } = require('sequelize');
+import { Sequelize } from 'sequelize';
+import { defineUser } from './User.js';
+import { defineAlert } from './Alert.js';
 
 const sequelize = new Sequelize(
   process.env.DB_NAME || 'stockapp',
@@ -6,20 +8,17 @@ const sequelize = new Sequelize(
   process.env.DB_PASSWORD || 'postgres',
   {
     host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432'),
+    port: parseInt(process.env.DB_PORT || '5432', 10),
     dialect: 'postgres',
     logging: false,
-  }
+  },
 );
 
-const UserModel = require('./User');
-const AlertModel = require('./Alert');
-
-const User = UserModel(sequelize);
-const Alert = AlertModel(sequelize);
+const User = defineUser(sequelize);
+const Alert = defineAlert(sequelize);
 
 // Associations
 User.hasMany(Alert, { foreignKey: 'userId', onDelete: 'CASCADE' });
 Alert.belongsTo(User, { foreignKey: 'userId' });
 
-module.exports = { sequelize, User, Alert };
+export { sequelize, User, Alert };

@@ -12,6 +12,7 @@ import StocksScreen from '../screens/StocksScreen';
 import StockDetailScreen from '../screens/StockDetailScreen';
 import AlertsScreen from '../screens/AlertsScreen';
 import CreateAlertScreen from '../screens/CreateAlertScreen';
+import { COLORS } from '../utils/theme';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -25,25 +26,38 @@ const screenOptions = ({ route }) => ({
   tabBarIcon: ({ color, size }) => (
     <Ionicons name={TAB_ICONS[route.name]} size={size} color={color} />
   ),
-  tabBarActiveTintColor: '#00D09C',
-  tabBarInactiveTintColor: '#8B949E',
-  tabBarStyle: { backgroundColor: '#161B22', borderTopColor: '#30363D' },
-  headerStyle: { backgroundColor: '#161B22' },
-  headerTintColor: '#FFFFFF',
+  tabBarActiveTintColor: COLORS.up,
+  tabBarInactiveTintColor: COLORS.muted,
+  tabBarStyle: { backgroundColor: COLORS.surface, borderTopColor: COLORS.border },
+  headerStyle: { backgroundColor: COLORS.surface },
+  headerTintColor: COLORS.text,
   headerTitleStyle: { fontWeight: '700' },
 });
 
+const stackHeaderOptions = {
+  headerStyle: { backgroundColor: COLORS.surface },
+  headerTintColor: COLORS.text,
+};
+
 const StocksStack = () => (
-  <Stack.Navigator screenOptions={{ headerStyle: { backgroundColor: '#161B22' }, headerTintColor: '#FFF' }}>
+  <Stack.Navigator screenOptions={stackHeaderOptions}>
     <Stack.Screen name="StocksList" component={StocksScreen} options={{ title: 'Markets' }} />
-    <Stack.Screen name="StockDetail" component={StockDetailScreen} options={({ route }) => ({ title: route.params.symbol })} />
+    <Stack.Screen
+      name="StockDetail"
+      component={StockDetailScreen}
+      options={({ route }) => ({ title: route.params.symbol })}
+    />
   </Stack.Navigator>
 );
 
 const AlertsStack = () => (
-  <Stack.Navigator screenOptions={{ headerStyle: { backgroundColor: '#161B22' }, headerTintColor: '#FFF' }}>
+  <Stack.Navigator screenOptions={stackHeaderOptions}>
     <Stack.Screen name="AlertsList" component={AlertsScreen} options={{ title: 'Price Alerts' }} />
-    <Stack.Screen name="CreateAlert" component={CreateAlertScreen} options={{ title: 'New Alert', presentation: 'modal' }} />
+    <Stack.Screen
+      name="CreateAlert"
+      component={CreateAlertScreen}
+      options={{ title: 'New Alert', presentation: 'modal' }}
+    />
   </Stack.Navigator>
 );
 
@@ -61,20 +75,22 @@ const AuthStack = () => (
   </Stack.Navigator>
 );
 
-export default function AppNavigator() {
+const AppNavigator = () => {
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0D1117' }}>
-        <ActivityIndicator size="large" color="#00D09C" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.bg }}>
+        <ActivityIndicator size="large" color={COLORS.up} />
       </View>
     );
   }
 
   return (
-    <NavigationContainer theme={{ colors: { background: '#0D1117' } }}>
+    <NavigationContainer theme={{ colors: { background: COLORS.bg } }}>
       {user ? <MainTabs /> : <AuthStack />}
     </NavigationContainer>
   );
-}
+};
+
+export default AppNavigator;

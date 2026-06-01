@@ -1,7 +1,7 @@
-const { DataTypes } = require('sequelize');
-const bcrypt = require('bcryptjs');
+import { DataTypes } from 'sequelize';
+import bcrypt from 'bcryptjs';
 
-module.exports = (sequelize) => {
+export const defineUser = (sequelize) => {
   const User = sequelize.define('User', {
     id: {
       type: DataTypes.UUID,
@@ -34,7 +34,7 @@ module.exports = (sequelize) => {
     user.password = await bcrypt.hash(user.password, 12);
   });
 
-  User.prototype.comparePassword = function (plain) {
+  User.prototype.comparePassword = function comparePassword(plain) {
     return bcrypt.compare(plain, this.password);
   };
 

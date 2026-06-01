@@ -1,17 +1,17 @@
-require('dotenv').config();
+import 'dotenv/config';
 
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors');
-const helmet = require('helmet');
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
+import helmet from 'helmet';
 
-const { sequelize } = require('./models');
-const authRoutes = require('./routes/auth');
-const stockRoutes = require('./routes/stocks');
-const alertRoutes = require('./routes/alerts');
-const { initFinnhubWebSocket } = require('./services/finnhubService');
-const { checkAlerts } = require('./services/alertService');
+import { sequelize, User } from './models/index.js';
+import { router as authRoutes } from './routes/auth.js';
+import { router as stockRoutes } from './routes/stocks.js';
+import { router as alertRoutes } from './routes/alerts.js';
+import { initFinnhubWebSocket } from './services/finnhubService.js';
+import { checkAlerts } from './services/alertService.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -32,33 +32,28 @@ app.get('/health', (_req, res) => res.json({ status: 'ok', ts: new Date().toISOS
 
 io.on('connection', (socket) => {
   console.log(`[Socket.io] Client connected: ${socket.id}`);
-  socket.on('disconnect', () =>
-    console.log(`[Socket.io] Client disconnected: ${socket.id}`)
-  );
+  socket.on('disconnect', () => console.log(`[Socket.io] Client disconnected: ${socket.id}`));
 });
 
 // Connect to Finnhub WebSocket, emit updates to Socket.io clients, and check alerts
 initFinnhubWebSocket(io, checkAlerts);
 
-const PORT = parseInt(process.env.PORT || '3000');
+const PORT = parseInt(process.env.PORT || '3000', 10);
 
-async function seedDemoUser() {
-  const { User } = require('./models');
+const seedDemoUser = async () => {
   const exists = await User.findOne({ where: { email: 'demo@stockalert.com' } });
   if (!exists) {
     await User.create({ username: 'demo', email: 'demo@stockalert.com', password: 'demo1234' });
     console.log('[Seed] Demo user created: demo@stockalert.com / demo1234');
   }
-}
+};
 
 sequelize
   .sync({ alter: true })
   .then(async () => {
     console.log('[DB] Models synchronized');
     await seedDemoUser();
-    server.listen(PORT, '0.0.0.0', () =>
-      console.log(`[Server] Running on port ${PORT}`)
-    );
+    server.listen(PORT, '0.0.0.0', () => console.log(`[Server] Running on port ${PORT}`));
   })
   .catch((err) => {
     console.error('[DB] Sync failed:', err.message);

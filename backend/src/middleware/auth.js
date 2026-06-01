@@ -1,17 +1,21 @@
-const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+import jwt from 'jsonwebtoken';
+import { User } from '../models/index.js';
 
-module.exports = async (req, res, next) => {
+export const authenticate = async (req, res, next) => {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Missing or invalid authorization header' });
+    res.status(401).json({ error: 'Missing or invalid authorization header' });
+    return;
   }
 
-  const token = header.split(' ')[1];
+  const [, token] = header.split(' ');
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findByPk(payload.userId);
-    if (!user) return res.status(401).json({ error: 'User not found' });
+    if (!user) {
+      res.status(401).json({ error: 'User not found' });
+      return;
+    }
     req.user = user;
     next();
   } catch {

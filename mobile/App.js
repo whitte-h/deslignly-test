@@ -1,7 +1,7 @@
 import { registerRootComponent } from 'expo';
 import React, { useEffect, useRef } from 'react';
-import { StatusBar } from 'expo-status-bar';
 import { LogBox } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import {
@@ -11,31 +11,27 @@ import {
 } from './src/services/notifications';
 import { connectSocket, disconnectSocket } from './src/services/socket';
 
-// Silence non-critical expo-notifications warnings in dev
 LogBox.ignoreLogs(['expo-notifications']);
 
-function AppContent() {
+const AppContent = () => {
   const { user } = useAuth();
   const notifListener = useRef(null);
   const responseListener = useRef(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) return undefined;
 
-    // Connect Socket.io
     connectSocket();
-
-    // Register for FCM / push notifications
     registerForPushNotifications();
 
-    // Handle foreground notifications
     notifListener.current = addNotificationListener((notification) => {
+      // eslint-disable-next-line no-console
       console.log('[Notification received]', notification.request.content);
     });
 
-    // Handle notification tap
     responseListener.current = addResponseListener((response) => {
-      const data = response.notification.request.content.data;
+      const { data } = response.notification.request.content;
+      // eslint-disable-next-line no-console
       console.log('[Notification tapped]', data);
     });
 
@@ -52,14 +48,12 @@ function AppContent() {
       <AppNavigator />
     </>
   );
-}
+};
 
-function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
-}
+const App = () => (
+  <AuthProvider>
+    <AppContent />
+  </AuthProvider>
+);
 
 registerRootComponent(App);

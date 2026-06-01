@@ -1,12 +1,11 @@
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const { User } = require('../models');
-const authenticate = require('../middleware/auth');
+import express from 'express';
+import jwt from 'jsonwebtoken';
+import { User } from '../models/index.js';
+import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
-const signToken = (userId) =>
-  jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+const signToken = (userId) => jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
 const safeUser = (user) => ({
   id: user.id,
@@ -18,7 +17,8 @@ router.post('/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
     if (!username || !email || !password) {
-      return res.status(400).json({ error: 'username, email and password are required' });
+      res.status(400).json({ error: 'username, email and password are required' });
+      return;
     }
     const user = await User.create({ username, email, password });
     res.status(201).json({ token: signToken(user.id), user: safeUser(user) });
@@ -32,11 +32,13 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ error: 'email and password are required' });
+      res.status(400).json({ error: 'email and password are required' });
+      return;
     }
     const user = await User.findOne({ where: { email } });
     if (!user || !(await user.comparePassword(password))) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      res.status(401).json({ error: 'Invalid credentials' });
+      return;
     }
     res.json({ token: signToken(user.id), user: safeUser(user) });
   } catch (err) {
@@ -47,7 +49,10 @@ router.post('/login', async (req, res) => {
 router.put('/fcm-token', authenticate, async (req, res) => {
   try {
     const { fcmToken } = req.body;
-    if (!fcmToken) return res.status(400).json({ error: 'fcmToken is required' });
+    if (!fcmToken) {
+      res.status(400).json({ error: 'fcmToken is required' });
+      return;
+    }
     await req.user.update({ fcmToken });
     res.json({ message: 'FCM token updated' });
   } catch (err) {
@@ -59,4 +64,4 @@ router.get('/me', authenticate, (req, res) => {
   res.json({ user: safeUser(req.user) });
 });
 
-module.exports = router;
+export { router };

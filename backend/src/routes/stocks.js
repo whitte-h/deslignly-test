@@ -1,12 +1,12 @@
-const express = require('express');
-const authenticate = require('../middleware/auth');
-const {
+import express from 'express';
+import { authenticate } from '../middleware/auth.js';
+import {
   getQuote,
   searchSymbols,
   getCandles,
   latestPrices,
   DEFAULT_SYMBOLS,
-} = require('../services/finnhubService');
+} from '../services/finnhubService.js';
 
 const router = express.Router();
 
@@ -33,7 +33,7 @@ router.get('/', authenticate, async (req, res) => {
           change: q.d,
           changePercent: q.dp,
         };
-      })
+      }),
     );
 
     const result = quotes
@@ -49,7 +49,10 @@ router.get('/', authenticate, async (req, res) => {
 router.get('/search', authenticate, async (req, res) => {
   try {
     const { q } = req.query;
-    if (!q) return res.status(400).json({ error: 'Query parameter q is required' });
+    if (!q) {
+      res.status(400).json({ error: 'Query parameter q is required' });
+      return;
+    }
     const data = await searchSymbols(q);
     res.json(data);
   } catch (err) {
@@ -72,10 +75,11 @@ router.get('/:symbol/candles', authenticate, async (req, res) => {
     const { symbol } = req.params;
     const { resolution = 'D', days = 30 } = req.query;
     const to = Math.floor(Date.now() / 1000);
-    const from = to - parseInt(days) * 86400;
+    const from = to - parseInt(days, 10) * 86400;
     const data = await getCandles(symbol.toUpperCase(), resolution, from, to);
     if (data.s === 'no_data') {
-      return res.json({ symbol, candles: [], status: 'no_data' });
+      res.json({ symbol, candles: [], status: 'no_data' });
+      return;
     }
     res.json({ symbol, candles: data, status: 'ok' });
   } catch (err) {
@@ -83,4 +87,4 @@ router.get('/:symbol/candles', authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export { router };

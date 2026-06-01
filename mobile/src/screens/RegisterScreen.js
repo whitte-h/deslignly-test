@@ -1,26 +1,39 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ActivityIndicator, Alert, ScrollView,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { COLORS } from '../utils/theme';
 
-export default function RegisterScreen({ navigation }) {
+const FIELDS = [
+  { field: 'username', placeholder: 'Username', auto: 'none' },
+  { field: 'email', placeholder: 'Email', auto: 'none', keyboard: 'email-address' },
+  { field: 'password', placeholder: 'Password', secure: true },
+  { field: 'confirm', placeholder: 'Confirm Password', secure: true },
+];
+
+const RegisterScreen = ({ navigation }) => {
   const { register } = useAuth();
-  const [form, setForm] = useState({ username: '', email: '', password: '', confirm: '' });
+  const [form, setForm] = useState({
+    username: '', email: '', password: '', confirm: '',
+  });
   const [loading, setLoading] = useState(false);
 
-  const set = (field) => (val) => setForm((f) => ({ ...f, [field]: val }));
+  const setField = (field) => (val) => setForm((f) => ({ ...f, [field]: val }));
 
   const handleRegister = async () => {
     if (!form.username || !form.email || !form.password) {
-      return Alert.alert('Error', 'All fields are required');
+      Alert.alert('Error', 'All fields are required');
+      return;
     }
     if (form.password !== form.confirm) {
-      return Alert.alert('Error', 'Passwords do not match');
+      Alert.alert('Error', 'Passwords do not match');
+      return;
     }
     if (form.password.length < 6) {
-      return Alert.alert('Error', 'Password must be at least 6 characters');
+      Alert.alert('Error', 'Password must be at least 6 characters');
+      return;
     }
     setLoading(true);
     try {
@@ -41,19 +54,16 @@ export default function RegisterScreen({ navigation }) {
         <Text style={styles.title}>Create Account</Text>
         <Text style={styles.subtitle}>Start tracking stocks in real time</Text>
 
-        {[
-          { field: 'username', placeholder: 'Username', auto: 'none' },
-          { field: 'email', placeholder: 'Email', auto: 'none', keyboard: 'email-address' },
-          { field: 'password', placeholder: 'Password', secure: true },
-          { field: 'confirm', placeholder: 'Confirm Password', secure: true },
-        ].map(({ field, placeholder, auto, keyboard, secure }) => (
+        {FIELDS.map(({
+          field, placeholder, auto, keyboard, secure,
+        }) => (
           <TextInput
             key={field}
             style={styles.input}
             placeholder={placeholder}
-            placeholderTextColor="#8B949E"
+            placeholderTextColor={COLORS.muted}
             value={form[field]}
-            onChangeText={set(field)}
+            onChangeText={setField(field)}
             autoCapitalize={auto || 'words'}
             keyboardType={keyboard || 'default'}
             secureTextEntry={!!secure}
@@ -61,45 +71,49 @@ export default function RegisterScreen({ navigation }) {
         ))}
 
         <TouchableOpacity style={styles.btn} onPress={handleRegister} disabled={loading}>
-          {loading ? (
-            <ActivityIndicator color="#0D1117" />
-          ) : (
-            <Text style={styles.btnText}>Create Account</Text>
-          )}
+          {loading
+            ? <ActivityIndicator color={COLORS.bg} />
+            : <Text style={styles.btnText}>Create Account</Text>}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.link}>Already have an account? <Text style={styles.linkAccent}>Sign In</Text></Text>
+          <Text style={styles.link}>
+            Already have an account?
+            {' '}
+            <Text style={styles.linkAccent}>Sign In</Text>
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
   );
-}
+};
+
+export default RegisterScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1117' },
+  container: { flex: 1, backgroundColor: COLORS.bg },
   inner: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 40 },
-  title: { fontSize: 28, fontWeight: '800', color: '#FFFFFF', marginBottom: 8 },
-  subtitle: { color: '#8B949E', marginBottom: 32, fontSize: 15 },
+  title: { fontSize: 28, fontWeight: '800', color: COLORS.text, marginBottom: 8 },
+  subtitle: { color: COLORS.muted, marginBottom: 32, fontSize: 15 },
   input: {
-    backgroundColor: '#161B22',
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: '#30363D',
+    borderColor: COLORS.border,
     borderRadius: 10,
     padding: 14,
-    color: '#FFFFFF',
+    color: COLORS.text,
     fontSize: 16,
     marginBottom: 14,
   },
   btn: {
-    backgroundColor: '#00D09C',
+    backgroundColor: COLORS.up,
     borderRadius: 10,
     padding: 15,
     alignItems: 'center',
     marginTop: 6,
     marginBottom: 20,
   },
-  btnText: { color: '#0D1117', fontWeight: '700', fontSize: 16 },
-  link: { color: '#8B949E', textAlign: 'center' },
-  linkAccent: { color: '#00D09C', fontWeight: '600' },
+  btnText: { color: COLORS.bg, fontWeight: '700', fontSize: 16 },
+  link: { color: COLORS.muted, textAlign: 'center' },
+  linkAccent: { color: COLORS.up, fontWeight: '600' },
 });

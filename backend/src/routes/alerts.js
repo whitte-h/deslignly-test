@@ -1,7 +1,7 @@
-const express = require('express');
-const { Alert } = require('../models');
-const authenticate = require('../middleware/auth');
-const { subscribe } = require('../services/finnhubService');
+import express from 'express';
+import { Alert } from '../models/index.js';
+import { authenticate } from '../middleware/auth.js';
+import { subscribe } from '../services/finnhubService.js';
 
 const router = express.Router();
 
@@ -21,14 +21,14 @@ router.post('/', authenticate, async (req, res) => {
   try {
     const { symbol, targetPrice } = req.body;
     if (!symbol || !targetPrice) {
-      return res.status(400).json({ error: 'symbol and targetPrice are required' });
+      res.status(400).json({ error: 'symbol and targetPrice are required' });
+      return;
     }
     const alert = await Alert.create({
       symbol: symbol.toUpperCase(),
       targetPrice: parseFloat(targetPrice),
       userId: req.user.id,
     });
-    // Ensure we're subscribed to real-time data for this symbol
     subscribe(symbol.toUpperCase());
     res.status(201).json({ alert });
   } catch (err) {
@@ -41,7 +41,10 @@ router.put('/:id', authenticate, async (req, res) => {
     const alert = await Alert.findOne({
       where: { id: req.params.id, userId: req.user.id },
     });
-    if (!alert) return res.status(404).json({ error: 'Alert not found' });
+    if (!alert) {
+      res.status(404).json({ error: 'Alert not found' });
+      return;
+    }
     const { targetPrice, active } = req.body;
     await alert.update({
       ...(targetPrice !== undefined && { targetPrice: parseFloat(targetPrice) }),
@@ -58,11 +61,14 @@ router.delete('/:id', authenticate, async (req, res) => {
     const deleted = await Alert.destroy({
       where: { id: req.params.id, userId: req.user.id },
     });
-    if (!deleted) return res.status(404).json({ error: 'Alert not found' });
+    if (!deleted) {
+      res.status(404).json({ error: 'Alert not found' });
+      return;
+    }
     res.json({ message: 'Alert deleted' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-module.exports = router;
+export { router };

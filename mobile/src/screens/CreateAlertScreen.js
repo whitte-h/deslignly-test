@@ -10,7 +10,7 @@ import { DEFAULT_SYMBOLS } from '../constants';
 import { COLORS, cardStyle } from '../utils/theme';
 import { formatPrice } from '../utils/format';
 
-export default function CreateAlertScreen({ route, navigation }) {
+const CreateAlertScreen = ({ route, navigation }) => {
   const preselected = route.params?.symbol ?? '';
   const [symbol, setSymbol] = useState(preselected);
   const [targetPrice, setTargetPrice] = useState('');
@@ -22,17 +22,17 @@ export default function CreateAlertScreen({ route, navigation }) {
   const [showSearch, setShowSearch] = useState(!preselected);
 
   useEffect(() => {
-    if (symbol) fetchQuote(symbol);
+    if (!symbol) return;
+    const fetchQuote = async () => {
+      try {
+        const { data } = await stocksAPI.quote(symbol);
+        setCurrentPrice(data.c);
+      } catch {
+        setCurrentPrice(null);
+      }
+    };
+    fetchQuote();
   }, [symbol]);
-
-  const fetchQuote = async (sym) => {
-    try {
-      const { data } = await stocksAPI.quote(sym);
-      setCurrentPrice(data.c);
-    } catch {
-      setCurrentPrice(null);
-    }
-  };
 
   const searchSymbols = async (q) => {
     if (!q.trim()) { setSearchResults([]); return; }
@@ -55,10 +55,14 @@ export default function CreateAlertScreen({ route, navigation }) {
   };
 
   const handleCreate = async () => {
-    if (!symbol) return Alert.alert('Error', 'Please select a stock symbol');
+    if (!symbol) {
+      Alert.alert('Error', 'Please select a stock symbol');
+      return;
+    }
     const price = parseFloat(targetPrice);
-    if (!targetPrice || isNaN(price) || price <= 0) {
-      return Alert.alert('Error', 'Please enter a valid target price');
+    if (!targetPrice || Number.isNaN(price) || price <= 0) {
+      Alert.alert('Error', 'Please enter a valid target price');
+      return;
     }
     setLoading(true);
     try {
@@ -74,7 +78,10 @@ export default function CreateAlertScreen({ route, navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
         <Text style={styles.label}>Stock Symbol</Text>
 
@@ -83,7 +90,11 @@ export default function CreateAlertScreen({ route, navigation }) {
             <View>
               <Text style={styles.selectedText}>{symbol}</Text>
               {currentPrice !== null && (
-                <Text style={styles.currentPrice}>Current: {formatPrice(currentPrice)}</Text>
+                <Text style={styles.currentPrice}>
+                  Current:
+                  {' '}
+                  {formatPrice(currentPrice)}
+                </Text>
               )}
             </View>
             <Ionicons name="swap-horizontal-outline" size={20} color={COLORS.muted} />
@@ -118,7 +129,11 @@ export default function CreateAlertScreen({ route, navigation }) {
             {searchResults.length > 0 && (
               <View style={styles.results}>
                 {searchResults.map((r) => (
-                  <TouchableOpacity key={r.symbol} style={styles.resultItem} onPress={() => selectSymbol(r.symbol)}>
+                  <TouchableOpacity
+                    key={r.symbol}
+                    style={styles.resultItem}
+                    onPress={() => selectSymbol(r.symbol)}
+                  >
                     <Text style={styles.resultSymbol}>{r.symbol}</Text>
                     <Text style={styles.resultDesc} numberOfLines={1}>{r.description}</Text>
                   </TouchableOpacity>
@@ -141,17 +156,23 @@ export default function CreateAlertScreen({ route, navigation }) {
             returnKeyType="done"
           />
         </View>
+
         {currentPrice !== null && (
           <TouchableOpacity onPress={() => setTargetPrice((currentPrice * 1.05).toFixed(2))}>
             <Text style={styles.hint}>
-              <Ionicons name="flash-outline" size={13} color={COLORS.up} /> Tap to set 5% above current ({formatPrice(currentPrice * 1.05)})
+              <Ionicons name="flash-outline" size={13} color={COLORS.up} />
+              {' '}
+              Tap to set 5% above current (
+              {formatPrice(currentPrice * 1.05)}
+              )
             </Text>
           </TouchableOpacity>
         )}
 
         <Text style={styles.info}>
           <Ionicons name="information-circle-outline" size={14} color={COLORS.muted} />
-          {' '}You'll receive a push notification when the price reaches your target.
+          {' '}
+          You&apos;ll receive a push notification when the price reaches your target.
         </Text>
 
         <TouchableOpacity style={styles.btn} onPress={handleCreate} disabled={loading}>
@@ -171,22 +192,32 @@ export default function CreateAlertScreen({ route, navigation }) {
       </ScrollView>
     </KeyboardAvoidingView>
   );
-}
+};
+
+export default CreateAlertScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
   inner: { padding: 20 },
-  label: { color: COLORS.muted, fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
-  sublabel: { color: COLORS.muted, fontSize: 12, marginTop: 12, marginBottom: 8 },
-  input: {
-    ...cardStyle,
-    borderRadius: 10, padding: 14, color: COLORS.text, fontSize: 16,
+  label: {
+    color: COLORS.muted,
+    fontSize: 13,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 10,
   },
+  sublabel: { color: COLORS.muted, fontSize: 12, marginTop: 12, marginBottom: 8 },
+  input: { ...cardStyle, borderRadius: 10, padding: 14, color: COLORS.text, fontSize: 16 },
   searchRow: { flexDirection: 'row', alignItems: 'center' },
   selectedSymbol: {
     ...cardStyle,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    borderColor: COLORS.up, borderRadius: 10, padding: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderColor: COLORS.up,
+    borderRadius: 10,
+    padding: 14,
   },
   selectedText: { color: COLORS.text, fontSize: 20, fontWeight: '700' },
   currentPrice: { color: COLORS.muted, fontSize: 13, marginTop: 2 },
@@ -202,12 +233,16 @@ const styles = StyleSheet.create({
   hint: { color: COLORS.up, fontSize: 13, marginTop: 8 },
   info: { color: COLORS.muted, fontSize: 13, marginTop: 20, lineHeight: 20 },
   btn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: COLORS.up, borderRadius: 12, padding: 15, marginTop: 28, gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.up,
+    borderRadius: 12,
+    padding: 15,
+    marginTop: 28,
+    gap: 8,
   },
   btnText: { color: COLORS.bg, fontWeight: '700', fontSize: 16 },
-  cancelBtn: {
-    alignItems: 'center', padding: 15, marginTop: 10,
-  },
+  cancelBtn: { alignItems: 'center', padding: 15, marginTop: 10 },
   cancelBtnText: { color: COLORS.muted, fontSize: 16, fontWeight: '600' },
 });
