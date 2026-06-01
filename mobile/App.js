@@ -1,3 +1,4 @@
+import { registerRootComponent } from 'expo';
 import React, { useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { LogBox } from 'react-native';
@@ -53,10 +54,12 @@ function AppContent() {
   );
 }
 
-export default function App() {
+function App() {
   return (
     <AuthProvider>
       <AppContent />
     </AuthProvider>
   );
 }
+
+registerRootComponent(App);
