@@ -27,6 +27,7 @@ export default function StockDetailScreen({ route, navigation }) {
   const [candles, setCandles] = useState(null);
   const [range, setRange] = useState(RANGES[1]);
   const [loading, setLoading] = useState(true);
+  const [chartUnavailable, setChartUnavailable] = useState(false);
   const livePrice = useRef(null);
 
   useEffect(() => {
@@ -45,13 +46,18 @@ export default function StockDetailScreen({ route, navigation }) {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
+      setChartUnavailable(false);
       try {
-        const [quoteRes, candleRes] = await Promise.all([
+        const [quoteRes, candleRes] = await Promise.allSettled([
           stocksAPI.quote(symbol),
           stocksAPI.candles(symbol, range.resolution, range.days),
         ]);
-        setQuote(quoteRes.data);
-        setCandles(candleRes.data);
+        if (quoteRes.status === 'fulfilled') setQuote(quoteRes.value.data);
+        if (candleRes.status === 'fulfilled') {
+          setCandles(candleRes.value.data);
+        } else {
+          setChartUnavailable(true);
+        }
       } catch (err) {
         Alert.alert('Error', err.message);
       } finally {
@@ -140,6 +146,12 @@ export default function StockDetailScreen({ route, navigation }) {
             withShadow={false}
             style={styles.chart}
           />
+        ) : chartUnavailable ? (
+          <View style={styles.noData}>
+            <Ionicons name="lock-closed-outline" size={28} color={COLORS.muted} />
+            <Text style={styles.noDataText}>Chart data is not available</Text>
+            <Text style={styles.noDataSub}>Upgrade your Finnhub plan to unlock historical candles</Text>
+          </View>
         ) : (
           <View style={styles.noData}>
             <Text style={styles.noDataText}>No chart data available for this range</Text>
@@ -195,7 +207,8 @@ const styles = StyleSheet.create({
   chartLoading: { height: 220, justifyContent: 'center', alignItems: 'center' },
   chart: { borderRadius: 8 },
   noData: { height: 220, justifyContent: 'center', alignItems: 'center' },
-  noDataText: { color: COLORS.muted },
+  noDataText: { color: COLORS.muted, marginTop: 10, fontWeight: '600' },
+  noDataSub: { color: COLORS.muted, fontSize: 12, marginTop: 6, textAlign: 'center', paddingHorizontal: 16, opacity: 0.7 },
   statsCard: { ...cardStyle, marginHorizontal: 16, padding: 16, marginBottom: 16 },
   statsTitle: { color: COLORS.muted, fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap' },
