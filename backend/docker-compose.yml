@@ -19,28 +19,5 @@ services:
       timeout: 5s
       retries: 5
 
-  backend:
-    build: .
-    container_name: stockapp_backend
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: stockapp
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      FINNHUB_API_KEY: ${FINNHUB_API_KEY:-d7k6v81r01qn1u2gf6l0d7k6v81r01qn1u2gf6lg}
-      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
-      FIREBASE_CLIENT_EMAIL: ${FIREBASE_CLIENT_EMAIL:-}
-      FIREBASE_PRIVATE_KEY: ${FIREBASE_PRIVATE_KEY:-}
-    ports:
-      - '3000:3000'
-
 volumes:
   pgdata:

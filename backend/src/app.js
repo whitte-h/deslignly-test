@@ -42,10 +42,20 @@ initFinnhubWebSocket(io, checkAlerts);
 
 const PORT = parseInt(process.env.PORT || '3000');
 
+async function seedDemoUser() {
+  const { User } = require('./models');
+  const exists = await User.findOne({ where: { email: 'demo@stockalert.com' } });
+  if (!exists) {
+    await User.create({ username: 'demo', email: 'demo@stockalert.com', password: 'demo1234' });
+    console.log('[Seed] Demo user created: demo@stockalert.com / demo1234');
+  }
+}
+
 sequelize
   .sync({ alter: true })
-  .then(() => {
+  .then(async () => {
     console.log('[DB] Models synchronized');
+    await seedDemoUser();
     server.listen(PORT, '0.0.0.0', () =>
       console.log(`[Server] Running on port ${PORT}`)
     );

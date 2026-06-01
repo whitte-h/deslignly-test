@@ -39,51 +39,51 @@ React Native (Expo) mobile app + Node.js backend with real-time Finnhub stock da
 
 ## Quick Start
 
-### 1 — Backend (Docker, recommended)
+The recommended dev setup is **PostgreSQL in Docker + backend running locally with Node**. This keeps the database isolated while letting you iterate on the backend with hot-reload and full access to local tooling.
+
+### 1 — Start PostgreSQL (Docker)
 
 ```bash
 cd backend
-cp .env.example .env
-# Edit .env — set JWT_SECRET and Firebase credentials
-
-docker-compose up --build
+docker compose up -d
 ```
 
-The API will be available at `http://localhost:3000`.
+This starts only the `db` service (Postgres 16 on port 5432) with a persistent `pgdata` volume. No backend container is involved.
 
-### 1b — Backend (local, without Docker)
+### 2 — Start the backend (Node)
 
 ```bash
 cd backend
+cp .env.example .env   # first time only
+# Edit .env — set JWT_SECRET and Firebase credentials if needed
+
 npm install
-cp .env.example .env
-# Edit .env — set DB_HOST=localhost and credentials
-
-npm run dev
+npm run dev            # or: node src/app.js
 ```
 
-Requires a running PostgreSQL instance.
+The API will be available at `http://localhost:3000`. On first run Sequelize syncs the schema and seeds a demo user automatically.
 
-### 2 — Mobile App
+> **Demo credentials:** `demo@stockalert.com` / `demo1234`
+
+### 3 — Start the mobile app
 
 ```bash
 cd mobile
 npm install
+npx expo start --clear
 ```
 
-Edit `src/api/index.js` and update `BASE_URL` to point to your backend:
+Scan the QR code with **Expo Go**, or press `i` / `a` for a simulator.
 
-```js
-export const BASE_URL = 'http://<YOUR_LOCAL_IP>:3000';
-```
+The app auto-detects your machine's LAN IP from Expo's Metro host, so **no manual IP configuration is needed** — it works on both simulator and physical device out of the box.
 
-> Use your machine's local IP (not `localhost`) when testing on a physical device.
+### Stopping Postgres
 
 ```bash
-npx expo start
+cd backend
+docker compose down          # stop (data is preserved)
+docker compose down -v       # stop and delete the database volume
 ```
-
-Scan the QR code with the **Expo Go** app, or press `i` / `a` for a simulator.
 
 ---
 
@@ -114,7 +114,7 @@ For production builds with push notifications, use [EAS Build](https://docs.expo
 | Individual stock chart | Finnhub candle API, 1W/1M/3M/1Y ranges |
 | Price alerts (create, pause, delete) | PostgreSQL + Sequelize ORM |
 | FCM push notification | Firebase Admin SDK on server, expo-notifications on mobile |
-| Docker deployment | PostgreSQL + backend via docker-compose |
+| Docker deployment | PostgreSQL via docker-compose, backend runs locally with Node |
 
 ---
 
