@@ -120,7 +120,7 @@ export default function StocksScreen({ navigation }) {
                   labels: chartData.map((s) => s.symbol),
                   datasets: [{ data: chartData.map((s) => parseFloat((s.changePercent ?? 0).toFixed(2))) }],
                 }}
-                width={width - 32}
+                width={width - 32 - 24}
                 height={180}
                 yAxisSuffix="%"
                 chartConfig={chartConfig}
