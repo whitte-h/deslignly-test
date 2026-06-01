@@ -31,11 +31,17 @@
           "color": "#00D09C",
           "defaultChannel": "stock_alerts"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "notification": {
       "androidMode": "default",
       "androidCollapsedTitle": "Stock Alert"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d4f82dba-1f2c-4f02-9d34-2ff60a6bba6f"
+      }
     }
   }
 }
