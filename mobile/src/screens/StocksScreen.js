@@ -8,6 +8,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { stocksAPI } from '../api';
 import { connectSocket, addPriceListener, removePriceListener } from '../services/socket';
 import { useAuth } from '../context/AuthContext';
+import { COLORS, cardStyle } from '../utils/theme';
+import { formatPrice, formatPercent, formatChange, changeColor } from '../utils/format';
+import { makeChartConfig } from '../utils/chartConfig';
 
 const { width } = Dimensions.get('window');
 const SOCKET_KEY = 'stocks_screen';
@@ -57,8 +60,8 @@ export default function StocksScreen({ navigation }) {
   const showChart = chartData.length > 0;
 
   const renderStock = ({ item }) => {
+    const color = changeColor(item.changePercent);
     const isUp = (item.changePercent ?? 0) >= 0;
-    const color = isUp ? '#00D09C' : '#FF4B4B';
     return (
       <TouchableOpacity
         style={styles.card}
@@ -69,16 +72,14 @@ export default function StocksScreen({ navigation }) {
           {item.change !== undefined && (
             <Text style={[styles.badge, { backgroundColor: isUp ? '#003D2E' : '#3D0D0D' }]}>
               <Ionicons name={isUp ? 'trending-up' : 'trending-down'} size={12} color={color} />
-              {' '}{isUp ? '+' : ''}{(item.changePercent ?? 0).toFixed(2)}%
+              {' '}{formatPercent(item.changePercent)}
             </Text>
           )}
         </View>
         <View style={styles.cardRight}>
-          <Text style={[styles.price, item.flash && { color }]}>${(item.price ?? 0).toFixed(2)}</Text>
+          <Text style={[styles.price, item.flash && { color }]}>{formatPrice(item.price)}</Text>
           {item.change !== undefined && (
-            <Text style={[styles.change, { color }]}>
-              {isUp ? '+' : ''}{(item.change ?? 0).toFixed(2)}
-            </Text>
+            <Text style={[styles.change, { color }]}>{formatChange(item.change)}</Text>
           )}
         </View>
       </TouchableOpacity>
@@ -88,7 +89,7 @@ export default function StocksScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#00D09C" />
+        <ActivityIndicator size="large" color={COLORS.up} />
         <Text style={styles.loadingText}>Loading market data...</Text>
       </View>
     );
@@ -101,14 +102,14 @@ export default function StocksScreen({ navigation }) {
       keyExtractor={(item) => item.symbol}
       renderItem={renderStock}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchStocks(); }} tintColor="#00D09C" />
+        <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchStocks(); }} tintColor={COLORS.up} />
       }
       ListHeaderComponent={
         <View>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Markets</Text>
             <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
-              <Ionicons name="log-out-outline" size={22} color="#8B949E" />
+              <Ionicons name="log-out-outline" size={22} color={COLORS.muted} />
             </TouchableOpacity>
           </View>
 
@@ -123,7 +124,7 @@ export default function StocksScreen({ navigation }) {
                 width={width - 32 - 24}
                 height={180}
                 yAxisSuffix="%"
-                chartConfig={chartConfig}
+                chartConfig={makeChartConfig()}
                 bezier
                 style={styles.chart}
                 withDots={true}
@@ -139,36 +140,26 @@ export default function StocksScreen({ navigation }) {
   );
 }
 
-const chartConfig = {
-  backgroundColor: '#161B22',
-  backgroundGradientFrom: '#161B22',
-  backgroundGradientTo: '#161B22',
-  decimalPlaces: 2,
-  color: (opacity = 1) => `rgba(0, 208, 156, ${opacity})`,
-  labelColor: (opacity = 1) => `rgba(139, 148, 158, ${opacity})`,
-  propsForDots: { r: '4', strokeWidth: '2', stroke: '#00D09C' },
-};
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1117' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0D1117' },
-  loadingText: { color: '#8B949E', marginTop: 12 },
+  container: { flex: 1, backgroundColor: COLORS.bg },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.bg },
+  loadingText: { color: COLORS.muted, marginTop: 12 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
-  headerTitle: { color: '#FFFFFF', fontSize: 22, fontWeight: '800' },
+  headerTitle: { color: COLORS.text, fontSize: 22, fontWeight: '800' },
   logoutBtn: { padding: 4 },
-  chartCard: { marginHorizontal: 16, marginBottom: 12, backgroundColor: '#161B22', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#30363D' },
-  chartTitle: { color: '#8B949E', fontSize: 13, marginBottom: 8, fontWeight: '600' },
+  chartCard: { ...cardStyle, marginHorizontal: 16, marginBottom: 12, padding: 12 },
+  chartTitle: { color: COLORS.muted, fontSize: 13, marginBottom: 8, fontWeight: '600' },
   chart: { borderRadius: 8 },
-  sectionTitle: { color: '#8B949E', fontSize: 13, fontWeight: '600', paddingHorizontal: 16, paddingBottom: 8, textTransform: 'uppercase', letterSpacing: 1 },
+  sectionTitle: { color: COLORS.muted, fontSize: 13, fontWeight: '600', paddingHorizontal: 16, paddingBottom: 8, textTransform: 'uppercase', letterSpacing: 1 },
   card: {
+    ...cardStyle,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: '#161B22', marginHorizontal: 16, marginBottom: 8,
-    borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#30363D',
+    marginHorizontal: 16, marginBottom: 8, padding: 14,
   },
   cardLeft: { flex: 1 },
   cardRight: { alignItems: 'flex-end' },
-  symbol: { color: '#FFFFFF', fontSize: 17, fontWeight: '700' },
-  badge: { alignSelf: 'flex-start', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, marginTop: 4, color: '#FFFFFF', fontSize: 12, fontWeight: '600', overflow: 'hidden' },
-  price: { color: '#FFFFFF', fontSize: 18, fontWeight: '700' },
+  symbol: { color: COLORS.text, fontSize: 17, fontWeight: '700' },
+  badge: { alignSelf: 'flex-start', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, marginTop: 4, color: COLORS.text, fontSize: 12, fontWeight: '600', overflow: 'hidden' },
+  price: { color: COLORS.text, fontSize: 18, fontWeight: '700' },
   change: { fontSize: 13, marginTop: 2 },
 });

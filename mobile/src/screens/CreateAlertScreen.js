@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, Alert,
-  ActivityIndicator, FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { alertsAPI, stocksAPI } from '../api';
 import { DEFAULT_SYMBOLS } from '../constants';
+import { COLORS, cardStyle } from '../utils/theme';
+import { formatPrice } from '../utils/format';
 
 export default function CreateAlertScreen({ route, navigation }) {
   const preselected = route.params?.symbol ?? '';
@@ -61,7 +63,7 @@ export default function CreateAlertScreen({ route, navigation }) {
     setLoading(true);
     try {
       await alertsAPI.create({ symbol, targetPrice: price });
-      Alert.alert('Success', `Alert created for ${symbol} at $${price.toFixed(2)}`, [
+      Alert.alert('Success', `Alert created for ${symbol} at ${formatPrice(price)}`, [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (err) {
@@ -81,10 +83,10 @@ export default function CreateAlertScreen({ route, navigation }) {
             <View>
               <Text style={styles.selectedText}>{symbol}</Text>
               {currentPrice !== null && (
-                <Text style={styles.currentPrice}>Current: ${currentPrice.toFixed(2)}</Text>
+                <Text style={styles.currentPrice}>Current: {formatPrice(currentPrice)}</Text>
               )}
             </View>
-            <Ionicons name="swap-horizontal-outline" size={20} color="#8B949E" />
+            <Ionicons name="swap-horizontal-outline" size={20} color={COLORS.muted} />
           </TouchableOpacity>
         ) : (
           <View>
@@ -92,15 +94,14 @@ export default function CreateAlertScreen({ route, navigation }) {
               <TextInput
                 style={[styles.input, { flex: 1 }]}
                 placeholder="Search (e.g. AAPL, Tesla)"
-                placeholderTextColor="#8B949E"
+                placeholderTextColor={COLORS.muted}
                 value={searchQuery}
                 onChangeText={(t) => { setSearchQuery(t); searchSymbols(t); }}
                 autoCapitalize="characters"
               />
-              {searching && <ActivityIndicator color="#00D09C" style={{ marginLeft: 8 }} />}
+              {searching && <ActivityIndicator color={COLORS.up} style={{ marginLeft: 8 }} />}
             </View>
 
-            {/* Popular symbols */}
             {!searchQuery && (
               <>
                 <Text style={styles.sublabel}>Popular</Text>
@@ -114,7 +115,6 @@ export default function CreateAlertScreen({ route, navigation }) {
               </>
             )}
 
-            {/* Search results */}
             {searchResults.length > 0 && (
               <View style={styles.results}>
                 {searchResults.map((r) => (
@@ -134,7 +134,7 @@ export default function CreateAlertScreen({ route, navigation }) {
           <TextInput
             style={[styles.input, { flex: 1 }]}
             placeholder="0.00"
-            placeholderTextColor="#8B949E"
+            placeholderTextColor={COLORS.muted}
             value={targetPrice}
             onChangeText={setTargetPrice}
             keyboardType="decimal-pad"
@@ -144,22 +144,22 @@ export default function CreateAlertScreen({ route, navigation }) {
         {currentPrice !== null && (
           <TouchableOpacity onPress={() => setTargetPrice((currentPrice * 1.05).toFixed(2))}>
             <Text style={styles.hint}>
-              <Ionicons name="flash-outline" size={13} color="#00D09C" /> Tap to set 5% above current (${(currentPrice * 1.05).toFixed(2)})
+              <Ionicons name="flash-outline" size={13} color={COLORS.up} /> Tap to set 5% above current ({formatPrice(currentPrice * 1.05)})
             </Text>
           </TouchableOpacity>
         )}
 
         <Text style={styles.info}>
-          <Ionicons name="information-circle-outline" size={14} color="#8B949E" />
+          <Ionicons name="information-circle-outline" size={14} color={COLORS.muted} />
           {' '}You'll receive a push notification when the price reaches your target.
         </Text>
 
         <TouchableOpacity style={styles.btn} onPress={handleCreate} disabled={loading}>
           {loading ? (
-            <ActivityIndicator color="#0D1117" />
+            <ActivityIndicator color={COLORS.bg} />
           ) : (
             <>
-              <Ionicons name="notifications-outline" size={20} color="#0D1117" />
+              <Ionicons name="notifications-outline" size={20} color={COLORS.bg} />
               <Text style={styles.btnText}>Create Alert</Text>
             </>
           )}
@@ -170,36 +170,36 @@ export default function CreateAlertScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1117' },
+  container: { flex: 1, backgroundColor: COLORS.bg },
   inner: { padding: 20 },
-  label: { color: '#8B949E', fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
-  sublabel: { color: '#8B949E', fontSize: 12, marginTop: 12, marginBottom: 8 },
+  label: { color: COLORS.muted, fontSize: 13, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
+  sublabel: { color: COLORS.muted, fontSize: 12, marginTop: 12, marginBottom: 8 },
   input: {
-    backgroundColor: '#161B22', borderWidth: 1, borderColor: '#30363D',
-    borderRadius: 10, padding: 14, color: '#FFFFFF', fontSize: 16,
+    ...cardStyle,
+    borderRadius: 10, padding: 14, color: COLORS.text, fontSize: 16,
   },
   searchRow: { flexDirection: 'row', alignItems: 'center' },
   selectedSymbol: {
+    ...cardStyle,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: '#161B22', borderWidth: 1, borderColor: '#00D09C',
-    borderRadius: 10, padding: 14,
+    borderColor: COLORS.up, borderRadius: 10, padding: 14,
   },
-  selectedText: { color: '#FFFFFF', fontSize: 20, fontWeight: '700' },
-  currentPrice: { color: '#8B949E', fontSize: 13, marginTop: 2 },
+  selectedText: { color: COLORS.text, fontSize: 20, fontWeight: '700' },
+  currentPrice: { color: COLORS.muted, fontSize: 13, marginTop: 2 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { backgroundColor: '#161B22', borderWidth: 1, borderColor: '#30363D', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
-  chipText: { color: '#FFFFFF', fontWeight: '600', fontSize: 13 },
-  results: { backgroundColor: '#161B22', borderRadius: 10, borderWidth: 1, borderColor: '#30363D', marginTop: 8, overflow: 'hidden' },
-  resultItem: { padding: 12, borderBottomWidth: 1, borderBottomColor: '#30363D' },
-  resultSymbol: { color: '#FFFFFF', fontWeight: '700' },
-  resultDesc: { color: '#8B949E', fontSize: 12, marginTop: 2 },
+  chip: { ...cardStyle, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
+  chipText: { color: COLORS.text, fontWeight: '600', fontSize: 13 },
+  results: { ...cardStyle, borderRadius: 10, marginTop: 8, overflow: 'hidden' },
+  resultItem: { padding: 12, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  resultSymbol: { color: COLORS.text, fontWeight: '700' },
+  resultDesc: { color: COLORS.muted, fontSize: 12, marginTop: 2 },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  dollar: { color: '#8B949E', fontSize: 20, fontWeight: '600' },
-  hint: { color: '#00D09C', fontSize: 13, marginTop: 8 },
-  info: { color: '#8B949E', fontSize: 13, marginTop: 20, lineHeight: 20 },
+  dollar: { color: COLORS.muted, fontSize: 20, fontWeight: '600' },
+  hint: { color: COLORS.up, fontSize: 13, marginTop: 8 },
+  info: { color: COLORS.muted, fontSize: 13, marginTop: 20, lineHeight: 20 },
   btn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#00D09C', borderRadius: 12, padding: 15, marginTop: 28, gap: 8,
+    backgroundColor: COLORS.up, borderRadius: 12, padding: 15, marginTop: 28, gap: 8,
   },
-  btnText: { color: '#0D1117', fontWeight: '700', fontSize: 16 },
+  btnText: { color: COLORS.bg, fontWeight: '700', fontSize: 16 },
 });
