@@ -66,5 +66,9 @@ module.exports = {
 
     // One expression per line is too strict for simple Text wrappers in RN
     'react/jsx-one-expression-per-line': 'off',
+
+    // Enforce named exports
+    'import/no-default-export': 'error',
+
   },
 };

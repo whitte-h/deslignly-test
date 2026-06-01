@@ -75,7 +75,7 @@ const AuthStack = () => (
   </Stack.Navigator>
 );
 
-const AppNavigator = () => {
+export const AppNavigator = () => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -92,5 +92,3 @@ const AppNavigator = () => {
     </NavigationContainer>
   );
 };
-
-export default AppNavigator;

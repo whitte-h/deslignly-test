@@ -15,7 +15,7 @@ import { makeChartConfig } from '../utils/chartConfig';
 const { width } = Dimensions.get('window');
 const SOCKET_KEY = 'stocks_screen';
 
-const StocksScreen = ({ navigation }) => {
+export const StocksScreen = ({ navigation }) => {
   const { logout } = useAuth();
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -147,8 +147,6 @@ const StocksScreen = ({ navigation }) => {
     />
   );
 };
-
-export default StocksScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },

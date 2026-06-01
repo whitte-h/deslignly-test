@@ -19,7 +19,7 @@ const getStatusLabel = (triggered, active) => {
   return active ? 'Active' : 'Paused';
 };
 
-const AlertsScreen = ({ navigation }) => {
+export const AlertsScreen = ({ navigation }) => {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -153,8 +153,6 @@ const AlertsScreen = ({ navigation }) => {
     </View>
   );
 };
-
-export default AlertsScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },

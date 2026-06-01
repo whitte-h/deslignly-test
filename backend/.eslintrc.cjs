@@ -11,6 +11,8 @@ module.exports = {
   rules: {
     // Enforce named exports across the backend
     'import/no-default-export': 'error',
+    // Conflicts with no-default-export — a single named export is fine
+    'import/prefer-default-export': 'off',
     // Native ESM requires explicit file extensions on relative imports
     'import/extensions': ['error', 'ignorePackages', { js: 'always' }],
 

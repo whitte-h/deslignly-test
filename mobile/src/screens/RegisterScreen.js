@@ -13,7 +13,7 @@ const FIELDS = [
   { field: 'confirm', placeholder: 'Confirm Password', secure: true },
 ];
 
-const RegisterScreen = ({ navigation }) => {
+export const RegisterScreen = ({ navigation }) => {
   const { register } = useAuth();
   const [form, setForm] = useState({
     username: '', email: '', password: '', confirm: '',
@@ -87,8 +87,6 @@ const RegisterScreen = ({ navigation }) => {
     </KeyboardAvoidingView>
   );
 };
-
-export default RegisterScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },

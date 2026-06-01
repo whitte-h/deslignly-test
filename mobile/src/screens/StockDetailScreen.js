@@ -65,7 +65,7 @@ const renderChartContent = ({ loading, hasData, dataValues, labels, color, chart
   );
 };
 
-const StockDetailScreen = ({ route, navigation }) => {
+export const StockDetailScreen = ({ route, navigation }) => {
   const { symbol } = route.params;
   const [quote, setQuote] = useState(null);
   const [candles, setCandles] = useState(null);
@@ -204,8 +204,6 @@ const StockDetailScreen = ({ route, navigation }) => {
     </ScrollView>
   );
 };
-
-export default StockDetailScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },

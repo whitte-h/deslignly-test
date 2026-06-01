@@ -6,7 +6,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { COLORS } from '../utils/theme';
 
-const LoginScreen = ({ navigation }) => {
+export const LoginScreen = ({ navigation }) => {
   const { login } = useAuth();
   const [email, setEmail] = useState('demo@stockalert.com');
   const [password, setPassword] = useState('demo1234');
@@ -74,8 +74,6 @@ const LoginScreen = ({ navigation }) => {
     </KeyboardAvoidingView>
   );
 };
-
-export default LoginScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },

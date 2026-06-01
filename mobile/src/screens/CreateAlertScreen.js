@@ -10,7 +10,7 @@ import { DEFAULT_SYMBOLS } from '../constants';
 import { COLORS, cardStyle } from '../utils/theme';
 import { formatPrice } from '../utils/format';
 
-const CreateAlertScreen = ({ route, navigation }) => {
+export const CreateAlertScreen = ({ route, navigation }) => {
   const preselected = route.params?.symbol ?? '';
   const [symbol, setSymbol] = useState(preselected);
   const [targetPrice, setTargetPrice] = useState('');
@@ -193,8 +193,6 @@ const CreateAlertScreen = ({ route, navigation }) => {
     </KeyboardAvoidingView>
   );
 };
-
-export default CreateAlertScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
